@@ -3,22 +3,41 @@ import { debounce } from "jsr:@std/async/debounce";
 const directoryName: string = Deno.args[0] || ".";
 const watcher = Deno.watchFs(directoryName);
 
-const command = new Deno.Command("git", {
-  args: ["diff --stat"],
-});
+const primaryColor = '#0dba3b';
+const secondaryColor = '#fcba03';
+const tertiaryColor = '#f44336';
 
-const debouncedLog = debounce((command: string) => {
-  console.log(command);
-}, 200);
+const getColor = (message: string) => {
+  if (message.includes("insertions(+), 0 deletions(-)")) {
+    return primaryColor;
+  } else if (message.includes("insertions(+), 1 deletion(-)")) {
+    return secondaryColor;
+  } else {
+    return tertiaryColor;
+  }
+};
 
-for await (const _event of watcher) {
+const runGitDiff = async () => {
+  const command = new Deno.Command("git", {
+    args: ["diff", "--stat"],
+  });
+
   const { success, stdout } = await command.output();
-
   if (!success) {
     console.error("Failed to execute command");
-    Deno.exit(1);
+    Deno.exit(0);
   }
 
   const decodedMessage = new TextDecoder().decode(stdout);
-  debouncedLog(decodedMessage);
+  console.clear();
+  console.log("%cDiff 📝", `color: black; background-color: ${getColor(decodedMessage)}; font-weight: bold;`);
+  console.log(decodedMessage);
+};
+
+const debouncedGitDiff = debounce(runGitDiff, 200);
+
+console.clear();
+console.log("%cWatching for Changes 👀", "background-color: white; color: black; font-weight: bold;");
+for await (const _event of watcher) {
+  debouncedGitDiff();
 }
