@@ -8,8 +8,8 @@ const secondaryColor = '#fcba03';
 const tertiaryColor = '#f44336';
 
 const getColor = (message: string) => {
-  const messageLength = message.split("\n").length;
-  if (messageLength === 0) return null;
+  const messageLength = message.trim().split("\n").length
+  if (messageLength === 1) return null;
 
   if (messageLength <= 10) return primaryColor;
   if (messageLength <= 20) return secondaryColor;
@@ -33,7 +33,6 @@ const runGitDiff = async () => {
 
   console.clear();
   console.log("%cDiff 📝", `color: black; background-color: ${color}; font-weight: bold;`);
-  console.log(decodedMessage.trim().split("\n").length);
   console.log(decodedMessage);
 };
 
