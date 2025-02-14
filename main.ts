@@ -8,6 +8,7 @@ const secondaryColor = '#fcba03';
 const tertiaryColor = '#f44336';
 
 const getColor = (message: string) => {
+  console.log('✨', message);
   if (message.includes("insertions(+), 0 deletions(-)")) {
     return primaryColor;
   } else if (message.includes("insertions(+), 1 deletion(-)")) {
