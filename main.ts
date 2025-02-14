@@ -33,6 +33,7 @@ const runGitDiff = async () => {
 
   console.clear();
   console.log("%cDiff 📝", `color: black; background-color: ${color}; font-weight: bold;`);
+  console.log(decodedMessage.trim().split("\n").length);
   console.log(decodedMessage);
 };
 
