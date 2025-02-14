@@ -8,14 +8,12 @@ const secondaryColor = '#fcba03';
 const tertiaryColor = '#f44336';
 
 const getColor = (message: string) => {
-  console.log('✨', message);
-  if (message.includes("insertions(+), 0 deletions(-)")) {
-    return primaryColor;
-  } else if (message.includes("insertions(+), 1 deletion(-)")) {
-    return secondaryColor;
-  } else {
-    return tertiaryColor;
-  }
+  const messageLength = message.split("\n").length;
+  if (messageLength === 0) return null;
+
+  if (messageLength <= 10) return primaryColor;
+  if (messageLength <= 20) return secondaryColor;
+  return tertiaryColor;
 };
 
 const runGitDiff = async () => {
@@ -30,8 +28,11 @@ const runGitDiff = async () => {
   }
 
   const decodedMessage = new TextDecoder().decode(stdout);
+  const color = getColor(decodedMessage);
+  if (!color) return;
+
   console.clear();
-  console.log("%cDiff 📝", `color: black; background-color: ${getColor(decodedMessage)}; font-weight: bold;`);
+  console.log("%cDiff 📝", `color: black; background-color: ${color}; font-weight: bold;`);
   console.log(decodedMessage);
 };
 
