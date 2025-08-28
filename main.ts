@@ -1,17 +1,46 @@
 import { debounce } from "jsr:@std/async/debounce";
 
+if (Deno.args.includes("--help") || Deno.args.includes("-h")) {
+  console.log("File Watcher - Monitor git changes in real-time");
+  console.log("Usage: deno run --allow-read --allow-run main.ts [directory]");
+  console.log("  directory: Directory to watch (default: current directory)");
+  Deno.exit(0);
+}
+
 const directoryName: string = Deno.args[0] || ".";
+
+const checkGitRepository = async (): Promise<boolean> => {
+  try {
+    const command = new Deno.Command("git", {
+      args: ["rev-parse", "--git-dir"],
+    });
+    const { success } = await command.output();
+    return success;
+  } catch {
+    return false;
+  }
+};
+
+if (!(await checkGitRepository())) {
+  console.error(
+    "Error: Not a git repository. Please run this tool in a git repository.",
+  );
+  Deno.exit(1);
+}
+
 const watcher = Deno.watchFs(directoryName);
 
 const primaryColor = "#0dba3b";
 const secondaryColor = "#fcba03";
 const tertiaryColor = "#f44336";
-let hasHadChanges;
+const SMALL_CHANGE_THRESHOLD = 10;
+const MEDIUM_CHANGE_THRESHOLD = 20;
+let hasHadChanges = false;
 
 const initMessage = () => {
   console.clear();
   console.log(
-    "%cWatching for Changes 👀",
+    "%cWatching for Changes",
     "background-color: white; color: black; font-weight: bold;",
   );
 };
@@ -25,8 +54,8 @@ const getColor = (message: string) => {
 
   hasHadChanges = true;
 
-  if (messageLength <= 10) return primaryColor;
-  if (messageLength <= 20) return secondaryColor;
+  if (messageLength <= SMALL_CHANGE_THRESHOLD) return primaryColor;
+  if (messageLength <= MEDIUM_CHANGE_THRESHOLD) return secondaryColor;
   return tertiaryColor;
 };
 
@@ -35,10 +64,10 @@ const runGitDiff = async () => {
     args: ["diff", "--stat"],
   });
 
-  const { success, stdout } = await command.output();
+  const { success, stdout, stderr } = await command.output();
   if (!success) {
-    console.error("Failed to execute command");
-    Deno.exit(0);
+    console.error("Git command failed:", new TextDecoder().decode(stderr));
+    return;
   }
 
   const decodedMessage = new TextDecoder().decode(stdout);
