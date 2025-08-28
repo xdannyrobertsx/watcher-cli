@@ -40,7 +40,7 @@ let hasHadChanges = false;
 const initMessage = () => {
   console.clear();
   console.log(
-    "%cWatching for Changes 👀",
+    "%cWatching for Changes",
     "background-color: white; color: black; font-weight: bold;",
   );
 };
